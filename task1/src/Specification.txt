@@ -1,0 +1,108 @@
+SAR Task 1
+
+Specification 
+Que fait chaque objet, quelles sont ses méthodes, comment intéragisse-t-elle avec les autres objet/méthodes
+
+***Tentative 1 :***
+Programme en Java qui permet de faire communiquer plusieurs tâches s'exécutant parallèllement.
+Chaque tâche est un thread composé d'un Broker et d'un Runnable (Executable ?).
+Le Broker est l'interface permettant les échanges entre les tâches. Il crée des channels pour communiquer avec les autres Broker. Un Broker envoi une demande de connection sur un numéro de port à un second broker. Ce dernier accepte la connection, créant ainsi un Channel entre les deux.  
+
+Class Broker : Objet 
+	Broker(String name) : Initialise un Broker en lui donnant un nom name
+	Channel accept(int port) : Accepte une demande de connection reçu sur le port port
+	Channel connect(String name, int port) : Envoi une demande de connection au Broker name sur le port numéro port
+	
+
+
+Class Channel :
+	int read(byte[] bytes, int offset, int length) : Méthode permettant de lire une séquence de bit sur le Channel. 
+	int write(byte[] bytes, int offset, int length) : Méthode permettant d'écrire une séquence de bit sur le Channel. 
+	void disconnect() : Déconnecte le channel des deux broker qu'il relit
+	boolean disconnected() : Vérifier si le Channel est déconnecter ou non
+
+
+Class Task
+	Task(Broker b, Runnable r) : initialise la Task, en lui donnant un Broker au préalable initialisé et 
+	static Broker getBroker() :
+
+
+***Correction 1 :***
+
+Cadre pour faire des canaux de communications entre deux tache
+Les taches utilisent des canaux pour envoyer des flux d'octets,
+Comment obtenir un canal ? -> broker = fabrique de canal
+Comment établir le canal de communication (port, nom, nombre de broker...)
+	Même numéro de port sur deux broker différents ne sont pas les même ports
+Combien de tâche sur combien de broker ? une tache a au moins un broker, pas de limite sur le nombre. plusieurs tâches peuvent se partager un broker
+Broker ont un nom unique, 
+Canaux FIFO lostless ? Ou autre chose ?
+Flux bidirectionnel ou unidirectionnel dans les canaux ? Bidirectionnel
+Mutli ou mono threadé ? faire du multi implique que l'écriture peut être découpé en plusieurs parties, et donc entrecoupé de message différent puisqu'il peut y avoir plusieurs task sur un canal. C'est préférable de faire du mono
+int read (buff[], off, len) -> buff[] tableau que l'on veut lire, off numéro du bit à partir duquel on doit lire, len nombre de bit que l'on doit lire, l'int en retour est le nombre de bit lu
+Read est bloquant s'il n'y a rien à lire, Write est bloquant s'il n'y a rien à écrire
+Gestion des codes retours des méthodes
+
+
+Pour semaine pro :
+Finir la spec, echanger avec les autres pour améliorer la spec
+
+***Tentative 2 :***
+
+Programme en Java qui permet de faire des canaux de communication entre plusieurs tâches s'exécutant parallèllement.
+Chaque tâche s'exécute dans un thread et utilise des canaux pour envoyer et recevoir des flux d'octets de/à d'autres tâches.
+
+Un Broker est l'interface permettant les échanges entre les tâches. Il crée des channels (canaux) pour communiquer avec les autres Broker.
+Chaque Broker possède un nom unique et des ports numérotés. Chaque Broker peut être utilisé par plusieurs tâches en même temps.
+Un Broker peut avoir deux modes : "client" ou "serveur"
+Le mode "client" est initié par la méthode accept. Il permet au Broker de se mettre en écoute sur un numéro de port spécifique en attendant une demande de connection.
+Le mode "serveur" est initié par la méthode connect. Il permet au Borker d'envoyer une demande de création de channel entre l'un de ses ports (spécifié) et un autre broker nommé spécifique.
+Si la connection échoue, un code/message d'erreur est envoyé au Broker demandeur.
+
+Class Broker : Objet 
+	Broker(String name) : Initialise un Broker en lui donnant un nom unique
+	Channel accept(int port) : Se met en écoute sur le numéro de port spécifié en attendant une demande de connection
+	Channel connect(String name, int port) : Envoi une demande de connection au Broker spécifié via le port numéro spécifié
+	
+Un channel est sous la forme d'un buffer circulaire, dans lequel chaques Broker connecté peut écrire et lire des octets.
+Un Channel est mono-threadé, bidirectionnel et FIFO Lostless et les deux méthodes read() et write() sont bloquantes pour éviter que des messages se retrouve découpé dans le buffer.
+Ainsi si write() est lancé, personne d'autre ne peut accéder au buffer pour y écrire quelque chose. De même read() et write() sont bloquantes s'il n'y a respectivement rien à lire et plus d'espace pour écrire 
+Si l'écriture ou la lecture échoue, renvoie un code/essage d'erreur (exemple : -1).
+
+Class Channel :
+	int read(byte[] bytes, int offset, int length) : Permet de lire un flux de 'length' bit à partir du bit 'offset' sur le Channel et de le recopier dans un tableau d'octet. Renvoie le nouvel offset
+	int write(byte[] bytes, int offset, int length) : Permet d'écrire le contenu d'un tableau d'octet dans un flux de 'length' bit à partir du bit 'offset' sur le Channel. Renvoie le nouvel offset
+	void disconnect() : Déconnecte le channel des deux broker qu'il relit
+	boolean disconnected() : Vérifier si le Channel est déconnecter ou non
+
+
+Chaque tâche est associée à au moins un Broker (associer dès l'initialisation), mais on peut en ajouter un à tout moment grâce à get broker.
+
+Class Task
+	Task(Broker b, Runnable r) : initialise la Task, en lui donnant un Broker au préalable initialisé
+	static Broker getBroker() : permet d'initialiser un broker supplémentaire.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
