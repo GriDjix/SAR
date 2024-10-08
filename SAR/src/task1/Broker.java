@@ -1,16 +1,58 @@
 package task1;
 
+import java.util.HashMap;
+
 public class Broker {
 	
 	String name;	
-	RdV rdv[];
+	HashMap<Integer, RdV> connections;
 	BrokerManager brokermanager;
 	
-	Broker(String name) {
+	public Broker(String name) {
 		this.name = name;
+		brokermanager = BrokerManager.getSelf();
+		connections = new HashMap<Integer, RdV>();
+		brokermanager.addBroker(this);
 	}
-	Channel accept(int port);
-	Channel connect(String name, int port);
+	
+	public Channel connect(String name, int port) throws InterruptedException {
+		Broker broker = (Broker) brokermanager.getBroker(name);
+		if (broker == null)
+			return null;
+		return broker._connect(this, port); //Find the accepting broker and go there for the rendez-vous
+	}
+	
+	public Channel accept(int port) throws IllegalStateException, InterruptedException{
+		RdV rdv = null;
+		synchronized (connections) {
+			rdv = connections.get(port);
+			if (rdv != null)
+				throw new IllegalStateException("Port " + port + " already acepting...");
+			rdv = new RdV();
+			connections.put(port, rdv); //add the rendez-vous object for the connect to find and go within that rendez-vous to wait
+			connections.notifyAll();
+		}
+		Channel ch;
+		ch = rdv.accept(this, port); //add the rendez-vous object for the connect to find and go within that rendez-vous to wait
+		return ch;
+	}
+	private Channel _connect(Broker bc, int port) throws InterruptedException {
+		RdV rdv = null;
+		synchronized (connections) {
+			rdv = connections.get(port);
+			while (rdv == null) {
+				try {
+					connections.wait();
+				} catch (InterruptedException ex) {
+					//Nothing to do here.
+				}
+				rdv = connections.get(port);
+			}
+			connections.remove(port); //Very important to remove it here, on the connect side and of course within the synchronized block
+		}
+		return rdv.connect(bc, port);
+	}
+	
 }
 
 

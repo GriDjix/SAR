@@ -1,0 +1,8 @@
+Specification_event
+
+Dans cette version, on change le fonctionnenement de QueueBroker et MessageQueue pour les rendres évenementiel, donc non bloquant.
+
+
+Problème avec send :
+attention au tableau, si on le passe à send sans faire de copy au préalable, il peut potentiellement être écraser si on passe un second tableau à send sans qu'il n'y ai eu de copy.
+on peut aussi 

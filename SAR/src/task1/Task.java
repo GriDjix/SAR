@@ -8,7 +8,7 @@ public class Task extends Thread {
 		broker = b;
 	}
 	
-	static Broker getBroker() {
+	public Broker getBroker() {
 		return broker;
 	}
 

@@ -4,25 +4,38 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class BrokerManager {
+    	
+		private static Map<String, Broker> brokers = new HashMap<>();
 	
-        // map giving the Broker from its name, static ? pas indispensable si un seul brkmngr
-        private static Map<String, Broker> brokers = new HashMap<>();
-
+		private static BrokerManager self;
+		
+		static BrokerManager getSelf() {
+			return self;
+		}
+		static {
+			self = new BrokerManager();
+		}
         
-        //  synchronized static
-        public static void addBroker(Broker broker) throws IllegalArgumentException {
-            if (isNameUsed(broker.name))
-                throw new IllegalArgumentException("Broker name already used (" + broker.name + ")");
-            brokers.put(broker.name, broker);
+        public synchronized void addBroker(Broker broker) throws IllegalArgumentException {
+        	String name = broker.name;
+        	Broker b = brokers.get(name);
+            if (b != null) {
+                throw new IllegalArgumentException("Broker name already used (" + name + ")");
+            }
+            brokers.put(name, broker);
         }
 
 
-        public static boolean isNameUsed(String name) {
-            return brokers.containsKey(name);
+        public synchronized boolean removeBroker(String name) throws IllegalArgumentException {
+            Broker b = brokers.get(name);
+            if (b == null) {
+            	throw new IllegalArgumentException("Broker " + name + " doesn't exists");
+            }
+            return brokers.remove(name) != null;            
         }
 
         
-        public static Broker getBroker(String name) {
+        public synchronized Broker getBroker(String name) {
             return brokers.get(name);
         }
 

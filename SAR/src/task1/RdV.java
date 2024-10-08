@@ -2,30 +2,43 @@ package task1;
 
 public class RdV {
 	Broker ba, bc;
-	Channel ca, cb;
+	Channel ca, cc;
 	
-	public Channel connect(Broker b) {
-		this.bc = b;
-		if (ba == null) {
-			cb = new Channel();
-			return cb;
-		}
-		else {
-			Channel cb = new Channel(ca.out, ca.in);
-			return cb;
+	private void _wait() {
+		while (ca == null || cc == null) {
+			try {
+				wait();
+			} catch (InterruptedException ex) {
+				// nothing to do here
+			}
 		}
 	}
 	
-	public Channel accept(Broker b) {
-		this.ba = b;
-		if (bc == null) {
-			ca = new Channel();
-			return ca;
+	synchronized Channel connect(Broker b, int port) throws InterruptedException {
+		this.bc = b;
+		this.cc = new Channel(bc, port);
+		if (ca != null) {
+			ca.connect(cc, bc.name);
+			notify();
 		}
 		else {
-			Channel ca = new Channel(cb.out, cb.in);
-			return cb;
+			wait();
 		}
+		return cc;
+		
+	}
+	
+	synchronized Channel accept(Broker b, int port) throws InterruptedException {
+		this.ba = b;
+		this.ca = new Channel(ba, port);
+		if (cc != null) {
+			cc.connect(ca, ba.name);
+			notify();
+		}
+		else {
+			wait();
+		}
+		return ca;
 	}
 	
 }
