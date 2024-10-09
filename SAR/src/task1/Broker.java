@@ -17,8 +17,9 @@ public class Broker {
 	
 	public Channel connect(String name, int port) throws InterruptedException {
 		Broker broker = (Broker) brokermanager.getBroker(name);
-		if (broker == null)
-			return null;
+		if (broker == null) {
+			throw new InterruptedException();
+		}
 		return broker._connect(this, port); //Find the accepting broker and go there for the rendez-vous
 	}
 	
@@ -51,6 +52,10 @@ public class Broker {
 			connections.remove(port); //Very important to remove it here, on the connect side and of course within the synchronized block
 		}
 		return rdv.connect(bc, port);
+	}
+	
+	public String getName() {
+		return name;
 	}
 	
 }

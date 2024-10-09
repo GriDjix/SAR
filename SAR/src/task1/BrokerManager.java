@@ -17,7 +17,7 @@ public class BrokerManager {
 		}
         
         public synchronized void addBroker(Broker broker) throws IllegalArgumentException {
-        	String name = broker.name;
+        	String name = broker.getName();
         	Broker b = brokers.get(name);
             if (b != null) {
                 throw new IllegalArgumentException("Broker name already used (" + name + ")");
@@ -26,11 +26,8 @@ public class BrokerManager {
         }
 
 
-        public synchronized boolean removeBroker(String name) throws IllegalArgumentException {
-            Broker b = brokers.get(name);
-            if (b == null) {
-            	throw new IllegalArgumentException("Broker " + name + " doesn't exists");
-            }
+        public synchronized boolean removeBroker(Broker broker) throws IllegalArgumentException {
+            String name = broker.getName();
             return brokers.remove(name) != null;            
         }
 
